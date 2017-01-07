@@ -21,7 +21,6 @@
 
 
 #include <avr/io.h>
-#include "CustomTypes.h"
 #include "Utils.h"
 /*
 enum DigitalPortID_e {

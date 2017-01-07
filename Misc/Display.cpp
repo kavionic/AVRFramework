@@ -103,9 +103,9 @@ void DisplayLCD::WaitBusy()
 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-uint8 DisplayLCD::Read(bool command)
+uint8_t DisplayLCD::Read(bool command)
 {
-    uint8 data;
+    uint8_t data;
 
     DigitalPort::SetAsInput(DISPLAY_DATA_PORT, DISPLAY_DATA_MASK);
     
@@ -141,7 +141,7 @@ uint8 DisplayLCD::Read(bool command)
 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-void DisplayLCD::Write(bool command, uint8 data)
+void DisplayLCD::Write(bool command, uint8_t data)
 {
     if ( command ) {
         DISPLAY_REGISTER_SELECT_LOW();
@@ -174,7 +174,7 @@ void DisplayLCD::WriteCharacter(char data)
 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-void DisplayLCD::WriteCommand(uint8 data)
+void DisplayLCD::WriteCommand(uint8_t data)
 {
     WaitBusy();
     Write(true, data);
@@ -195,7 +195,7 @@ void DisplayLCD::ClearDisplay()
 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-void DisplayLCD::ClearTo(uint8 xPos)
+void DisplayLCD::ClearTo(uint8_t xPos)
 {
     while(m_CursorX < xPos )
     {
@@ -216,12 +216,12 @@ void DisplayLCD::ClearToEndOfLine()
 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-void DisplayLCD::SetCursor( uint8 x, uint8 y )
+void DisplayLCD::SetCursor( uint8_t x, uint8_t y )
 {
     m_CursorX = x;
     m_CursorY = y;
     
-    uint8 address = 0;
+    uint8_t address = 0;
     switch(y)
     {
         case 0: address = LCD_LINE_ADDR1; break;
@@ -262,9 +262,9 @@ void DisplayLCD::Newline(bool clearToEnd)
 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-void DisplayLCD::PrintString( const char* i_pzString, uint8 i_nMinLength, uint8 maxLength )
+void DisplayLCD::PrintString( const char* i_pzString, uint8_t i_nMinLength, uint8_t maxLength )
 {
-    uint8 i;
+    uint8_t i;
 	
     for ( i = 0 ; i_pzString[i] != 0 && i < maxLength ; ++i )
     {
@@ -536,7 +536,7 @@ int DisplayLCD::DisplayPutchar(char c, FILE* stream)
 }
 
 /*
-void DisplayLCD::SetDisplayChar( uint8 level )
+void DisplayLCD::SetDisplayChar( uint8_t level )
 {
     if ( level == 0 ) {
         WriteDisplayByte( false, 0x20 ); // Empty
@@ -545,7 +545,7 @@ void DisplayLCD::SetDisplayChar( uint8 level )
     }
 }*/
 /*
-char DisplayLCD::GetBarChar( uint8 level )
+char DisplayLCD::GetBarChar( uint8_t level )
 {
     if ( level == 0 ) {
         return 0x20;
@@ -554,7 +554,7 @@ char DisplayLCD::GetBarChar( uint8 level )
     }
 }
 
-void DisplayLCD::SetDisplayBar( uint8 bar, uint8 level )
+void DisplayLCD::SetDisplayBar( uint8_t bar, uint8_t level )
 {
     if ( level < 8 ) {
         SetCursor( 11 + bar, 0 );

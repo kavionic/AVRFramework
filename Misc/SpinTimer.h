@@ -21,20 +21,19 @@
 #define F_TIMER_H__
 
 #include <avr/io.h>
-#include "CustomTypes.h"
 
 class SpinTimer
 {
 public:
     static void Initialize();
     
-    static uint8 GetCurrentTime();
-    static void  Delay( uint8 i_nStartTime, uint8 i_nDelay );
-    static uint8 Delay16( uint8 i_nStartTime, uint16 i_nDelay );
+    static uint8_t GetCurrentTime();
+    static void  Delay( uint8_t i_nStartTime, uint8_t i_nDelay );
+    static uint8_t Delay16( uint8_t i_nStartTime, uint16_t i_nDelay );
     
-    static uint8 SleepuS(uint16 delay);
+    static uint8_t SleepuS(uint16_t delay);
     
-    static uint8 SleepMS(uint16 delay);
+    static uint8_t SleepMS(uint16_t delay);
 };
 
 #endif // F_TIMER_H__

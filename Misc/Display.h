@@ -23,8 +23,6 @@
 #include <avr/io.h>
 #include <stdio.h>
 
-#include "CustomTypes.h"
-
 #define LCD_LINES          2     /**< number of visible lines of the display */
 #define LCD_DISP_LENGTH   16     /**< visibles characters per line of the display */
 #define LCD_LINE_LENGTH 0x40     /**< internal line length of the display    */
@@ -107,23 +105,23 @@
 class DisplayLCD
 {
 public:
-    static const uint8 WIDTH  = 20;
-    static const uint8 HEIGHT = 4;
+    static const uint8_t WIDTH  = 20;
+    static const uint8_t HEIGHT = 4;
     
     void InitializeDisplay();
 
     void EnableDisplay(bool turnOn, bool enableCursor = false, bool enableBlinking = false);
 
     void ClearDisplay();
-    void ClearTo(uint8 xPos);
+    void ClearTo(uint8_t xPos);
     void ClearToEndOfLine();
-    void SetCursor( uint8 x, uint8 y );
+    void SetCursor( uint8_t x, uint8_t y );
     uint8_t GetCursorX() const { return m_CursorX; }
     uint8_t GetCursorY() const { return m_CursorY; }
         
     void Newline(bool clearToEnd);
-//    void PrintString( const char* i_pzString, uint8 i_nMinLength );
-    void PrintString( const char* i_pzString, uint8 i_nMinLength, uint8 maxLength = 80 );
+//    void PrintString( const char* i_pzString, uint8_t i_nMinLength );
+    void PrintString( const char* i_pzString, uint8_t i_nMinLength, uint8_t maxLength = 80 );
     void PrintHorizontalBar(int8_t y, uint8_t percentage, int8_t barNum = 0);
 
     void PrintScrollingText(const char* text, int8_t maxStrLength, bool leftAlign, int8_t startX, int8_t maxDispLength, int8_t line, int8_t* scrollOffset);
@@ -133,23 +131,23 @@ public:
     void WriteCustomCharBegin(uint8_t charIndex);
     void WriteCustomCharRow(uint8_t bits);
 
-    char GetBarChar( uint8 level );
-    void SetDisplayBar( uint8 bar, uint8 level );
+    char GetBarChar( uint8_t level );
+    void SetDisplayBar( uint8_t bar, uint8_t level );
     
-    uint8 Read(bool command);
+    uint8_t Read(bool command);
     
-    void Write(bool command, uint8 data);
-    void WriteData(uint8 data) __attribute__ ((deprecated)) { WriteCharacter(data); }
+    void Write(bool command, uint8_t data);
+    void WriteData(uint8_t data) __attribute__ ((deprecated)) { WriteCharacter(data); }
     void WriteCharacter(char data);
-    void WriteCommand(uint8 data);
+    void WriteCommand(uint8_t data);
 
     void WaitBusy();
     
 private:    
     static int DisplayPutchar(char c, FILE* stream);
     
-    uint8 m_CursorX:6;
-    uint8 m_CursorY:2;
+    uint8_t m_CursorX:6;
+    uint8_t m_CursorY:2;
     
     FILE m_DisplayFile;    
 };

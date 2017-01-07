@@ -28,14 +28,14 @@
 #endif
 #define SPINTIMER_USEC (SPINTIMER_FREQ / 1000000)
 
-uint8 SpinTimer::GetCurrentTime()
+uint8_t SpinTimer::GetCurrentTime()
 {
     return SPINTIMER_TIMERL;
 }
 
-void SpinTimer::Delay( uint8 i_nStartTime, uint8 i_nDelay )
+void SpinTimer::Delay( uint8_t i_nStartTime, uint8_t i_nDelay )
 {
-    uint8 nTime;
+    uint8_t nTime;
     
     for(;;)
     {
@@ -46,9 +46,9 @@ void SpinTimer::Delay( uint8 i_nStartTime, uint8 i_nDelay )
     }
 }
 
-uint8 SpinTimer::SleepuS( uint16 delay )
+uint8_t SpinTimer::SleepuS( uint16_t delay )
 {
-    uint8 curTime = SPINTIMER_TIMERL;
+    uint8_t curTime = SPINTIMER_TIMERL;
     while( delay >= 60000 / SPINTIMER_USEC )
     {
         curTime = Delay16(curTime, 60000);
@@ -61,9 +61,9 @@ uint8 SpinTimer::SleepuS( uint16 delay )
     return curTime;
 }
 
-uint8 SpinTimer::SleepMS( uint16 delay )
+uint8_t SpinTimer::SleepMS( uint16_t delay )
 {
-    uint8 curTime = SPINTIMER_TIMERL;
+    uint8_t curTime = SPINTIMER_TIMERL;
     while(delay--)
     {
         curTime = Delay16(curTime, 1000 * SPINTIMER_USEC);
@@ -71,7 +71,7 @@ uint8 SpinTimer::SleepMS( uint16 delay )
     return curTime;
 }
 
-uint8 SpinTimer::Delay16( uint8 i_nStartTime, uint16 i_nDelay )
+uint8_t SpinTimer::Delay16( uint8_t i_nStartTime, uint16_t i_nDelay )
 {
     for (;;)
     {
@@ -82,7 +82,7 @@ uint8 SpinTimer::Delay16( uint8 i_nStartTime, uint16 i_nDelay )
             i_nStartTime += 64;
             i_nDelay -= 64;
         } else {
-            uint8 nRemaining = (uint8)i_nDelay;
+            uint8_t nRemaining = (uint8_t)i_nDelay;
             Delay( i_nStartTime, nRemaining );
             i_nStartTime += nRemaining;
             break;
