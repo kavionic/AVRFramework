@@ -95,18 +95,13 @@ static int16_t GetAvailableSerialBytes()
 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-void ESP8266::Initialize(bool wifiBridge)
+void ESP8266::Initialize(bool reuseRadioConfig, bool wifiBridge)
 {
     // Set mode of operation
-    if (!wifiBridge) {
-//        WIFI_USART.CTRLA = USART_RXCINTLVL_HI_gc; // Enable receive interrupt.
-    }
-    WIFI_USART.CTRLC = USART_CMODE_ASYNCHRONOUS_gc | USART_PMODE_DISABLED_gc | USART_CHSIZE_8BIT_gc;			// async, no parity, 8 bit data, 1 stop bit
+    WIFI_USART.CTRLC = USART_CMODE_ASYNCHRONOUS_gc | USART_PMODE_DISABLED_gc | USART_CHSIZE_8BIT_gc;  // async, no parity, 8 bit data, 1 stop bit
     // Enable transmitter and receiver
     WIFI_USART.CTRLB = USART_TXEN_bm | USART_RXEN_bm | USART_CLK2X_bm;
 
-    SetUSARTBaudRate(-5, 1079); // 115200
-    //SetUSARTBaudRate(9600);
     DigitalPort::SetAsOutput(WIFI_RADIO_FLASHEN_PORT, WIFI_RADIO_FLASHEN_PIN);
     DigitalPort::SetHigh(WIFI_RADIO_FLASHEN_PORT, WIFI_RADIO_FLASHEN_PIN);
     
@@ -115,23 +110,29 @@ void ESP8266::Initialize(bool wifiBridge)
     DigitalPort::SetHigh(WIFI_RADIO_RESET_PORT, WIFI_RADIO_RESET_PIN);
     WIFI_USART_OUT_PORT->REMAP = PORT_USART0_bm; // Move USART from pin 2/3 to pin 6/7.
 
-    DMA.CTRL = DMA_ENABLE_bm | DMA_DBUFMODE_CH01_gc | DMA_PRIMODE_RR0123_gc;
+#ifndef ESP8266_LEAN
+    if (!wifiBridge)
+#endif
+    {
+        DMA.CTRL = DMA_ENABLE_bm | DMA_DBUFMODE_CH01_gc | DMA_PRIMODE_RR0123_gc;
 
-    DMA.CH2.TRFCNT    = WIFI_SERIAL_IN_BUFFER_SIZE;
-    DMA.CH2.REPCNT    = 0;
-    DMA.CH2.ADDRCTRL  = DMA_CH_SRCDIR_FIXED_gc | DMA_CH_SRCRELOAD_NONE_gc | DMA_CH_DESTDIR_INC_gc | DMA_CH_DESTRELOAD_BLOCK_gc;
-    DMA.CH2.SRCADDR0  = ((intptr_t)&WIFI_USART.DATA) & 0xff;
-    DMA.CH2.SRCADDR1  = (((intptr_t)&WIFI_USART.DATA) >> 8) & 0xff;
-    DMA.CH2.SRCADDR2  = 0;
-    DMA.CH2.DESTADDR0 = ((intptr_t)g_SerialReceiveBuffer) & 0xff;
-    DMA.CH2.DESTADDR1 = (((intptr_t)g_SerialReceiveBuffer) >> 8) & 0xff;
-    DMA.CH2.DESTADDR2 = 0;
-    DMA.CH2.TRIGSRC   = DMA_CH_TRIGSRC_USARTF0_RXC_gc;
-    DMA.CH2.CTRLA     = DMA_CH_ENABLE_bm | DMA_CH_REPEAT_bm | DMA_CH_SINGLE_bm | DMA_CH_BURSTLEN_1BYTE_gc;
+        DMA.CH2.TRFCNT    = WIFI_SERIAL_IN_BUFFER_SIZE;
+        DMA.CH2.REPCNT    = 0;
+        DMA.CH2.ADDRCTRL  = DMA_CH_SRCDIR_FIXED_gc | DMA_CH_SRCRELOAD_NONE_gc | DMA_CH_DESTDIR_INC_gc | DMA_CH_DESTRELOAD_BLOCK_gc;
+        DMA.CH2.SRCADDR0  = ((intptr_t)&WIFI_USART.DATA) & 0xff;
+        DMA.CH2.SRCADDR1  = (((intptr_t)&WIFI_USART.DATA) >> 8) & 0xff;
+        DMA.CH2.SRCADDR2  = 0;
+        DMA.CH2.DESTADDR0 = ((intptr_t)g_SerialReceiveBuffer) & 0xff;
+        DMA.CH2.DESTADDR1 = (((intptr_t)g_SerialReceiveBuffer) >> 8) & 0xff;
+        DMA.CH2.DESTADDR2 = 0;
+        DMA.CH2.TRIGSRC   = DMA_CH_TRIGSRC_USARTF0_RXC_gc;
+        DMA.CH2.CTRLA     = DMA_CH_ENABLE_bm | DMA_CH_REPEAT_bm | DMA_CH_SINGLE_bm | DMA_CH_BURSTLEN_1BYTE_gc;
+    }
 
 #ifndef ESP8266_LEAN
     if (wifiBridge)
     {
+        SetUSARTBaudRate(-5, 1079); // 115200
         cli();
         for (;;)
         {
@@ -148,6 +149,22 @@ void ESP8266::Initialize(bool wifiBridge)
         }
     }
 #endif
+    if (reuseRadioConfig)
+    {
+        DB_LOG(DP_INFO, PSTRL("Attempting to reuse radio setup..."));
+        SetUSARTBaudRate(-5, 79); // 1152000
+        m_StatusFlags = e_StatusConnectedToAP;
+        if (!StartServer(42))
+        {
+            m_StatusFlags = 0;
+            SetUSARTBaudRate(-5, 1079); // 115200
+            DB_LOG(DP_INFO, PSTRL("...failed"));
+        }
+        else
+        {
+            DB_LOG(DP_INFO, PSTRL("...succeded"));       
+        }
+    }        
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -312,7 +329,7 @@ bool ESP8266::ReadResponseLine(uint16_t timeout, bool breakOnIPData)
             for (uint8_t i = 0 ; i < m_ResponseDataLength ;++i ) {
                 if (m_ResponseBuffer[i] == 0) m_ResponseBuffer[i] = '?';
             }
-            DB_LOG(DP_CRITICAL, PSTRL("ERROR: ReadResponseLine() buffer overflow! "), m_ResponseDataLength);
+            DB_LOG(DP_ERROR, PSTRL("ERROR: ReadResponseLine() buffer overflow! "), m_ResponseDataLength);
             DB_LOG(DP_ERROR, m_ResponseBuffer);
             return false;
         }
@@ -370,6 +387,9 @@ void ESP8266::ResetRadio()
     g_ReceiveTimedOut = false;
     memset(m_TotalDataReceived, 0, sizeof(m_TotalDataReceived));
     DisconnectFromAP();
+    EnableEcho(false);
+    SetBaudrate();
+    SetMuxMode(WifiMuxMode_e::e_Multiple);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -966,6 +986,7 @@ bool ESP8266::StartServer(uint16_t port)
     
     DB_LOG(DP_INFO, PSTRL("AT+CIPSERVER=1,"), port);
     if ( ExecuteCommand(PSTRL("AT+CIPSERVER=1,"), port) ) {
+        m_StatusFlags |= e_StatusServerRunning;
         DB_LOG(DP_INFO, PSTRL("Server started."));
         return true;
     } else {

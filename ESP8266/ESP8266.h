@@ -95,7 +95,7 @@ public:
 
     static const uint8_t WIFI_MAX_LINKS=5;
     
-    void Initialize(bool wifiBridge);
+    void Initialize(bool reuseRadioConfig, bool wifiBridge);
     
     bool Run();
 
